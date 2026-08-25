@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ポータルページ</title>
+  <!-- FullCalendar CSS & JS -->
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body { 
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+      max-width: 900px; 
+      margin: 0 auto; 
+      padding: 16px 12px; 
+      background-color: #f8fafc;
+      color: #334155;
+      line-height: 1.5;
+    }
+    
+    /* セクション分けの共通枠スタイル */
+    .section-box { 
+      background: #fff; 
+      border: 1px solid #e2e8f0; 
+      padding: 16px; 
+      border-radius: 12px; 
+      margin-bottom: 24px; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04); 
+    }
+    
+    @media (min-width: 768px) {
+      body {
+        padding: 24px 16px;
+      }
+      .section-box {
+        padding: 24px;
+        margin-bottom: 35px;
+      }
+    }
+
+    .section-title { 
+      margin-top: 0; 
+      border-bottom: 3px solid #007bff; 
+      padding-bottom: 8px; 
+      font-size: 1.25em; 
+      color: #0f172a;
+    }
+
+    @media (min-width: 768px) {
+      .section-title {
+        font-size: 1.4em;
+      }
+    }
+
+    /* 連絡板用スタイル */
+    .notice-card { 
+      border: 1px solid #e2e8f0; 
+      padding: 12px; 
+      margin-bottom: 12px; 
+      border-radius: 8px; 
+      background: #fafafa; 
+      word-break: break-word; /* テキスト長超過対策 */
+    }
+    
+    .notice-card.important { 
+      border-left: 5px solid #dc3545; 
+      background-color: #fff8f8; 
+      border-color: #f5c6cb; 
+    }
+    
+    .notice-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: flex-start; 
+      gap: 8px;
+      margin-bottom: 6px; 
+    }
+    
+    .notice-title { 
+      font-size: 1em; 
+      font-weight: bold; 
+      margin: 0; 
+      color: #0f172a;
+      flex: 1;
+    }
+
+    @media (min-width: 768px) {
+      .notice-title {
+        font-size: 1.1em;
+      }
+    }
+    
+    .notice-date { 
+      color: #64748b; 
+      font-size: 0.8em; 
+      white-space: nowrap;
+    }
+    
+    .notice-content { 
+      margin-top: 8px; 
+      white-space: pre-wrap; 
+      line-height: 1.6; 
+      color: #334155; 
+      font-size: 0.9em;
+    }
+
+    @media (min-width: 768px) {
+      .notice-content {
+        font-size: 1em;
+      }
+    }
+    
+    .badge-important { 
+      background: #dc3545; 
+      color: white; 
+      padding: 2px 6px; 
+      border-radius: 4px; 
+      font-size: 0.75em; 
+      margin-right: 6px; 
+      display: inline-block;
+      vertical-align: middle;
+    }
+    
+    #notice-list { 
+      max-height: 450px; 
+      overflow-y: auto; 
+    }
+
+    /* FullCalendar レスポンシブ調整 */
+    #calendar {
+      width: 100%;
+    }
+
+    /* スマホ画面でツールバーが崩れるのを防ぐ調整 */
+    .fc .fc-toolbar {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .fc .fc-toolbar-title {
+      font-size: 1.1em !important;
+    }
+
+    @media (max-width: 767px) {
+      .fc .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+      }
+      .fc .fc-button {
+        padding: 6px 8px !important;
+        font-size: 0.85em !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. お知らせ連絡板エリア -->
+  <div class="section-box">
+    <h2 class="section-title">📢 お知らせ連絡板</h2>
+    <div id="notice-list">読み込み中...</div>
+  </div>
+
+  <!-- 2. カレンダーエリア -->
+  <div class="section-box">
+    <h2 class="section-title">📅 スケジュールカレンダー</h2>
+    <div id="calendar"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://hgncgmwyimxhtxsvujje.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnbmNnbXd5aW14aHR4c3Z1amplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MzU5MDAsImV4cCI6MjEwMzExMTkwMH0.woPE34ngX-8EF_ffTeEeHxzoBT-hJRsJCJ4fZOmPIHg';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let calendar; // グローバルで保持
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadNotices();
+      initCalendar();
+    });
+
+    // --- 1. 連絡板データの取得・表示 ---
+    async function loadNotices() {
+      const { data: notices, error } = await supabaseClient
+        .from('notices')
+        .select('*')
+        .order('important', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      const container = document.getElementById('notice-list');
+      if (error) {
+        container.innerHTML = '<p>お知らせの取得に失敗しました。</p>';
+        console.error('Notices Fetch Error:', error);
+        return;
+      }
+
+      if (!notices || notices.length === 0) {
+        container.innerHTML = '<p style="color: #666;">現在お知らせはありません。</p>';
+        return;
+      }
+
+      container.innerHTML = notices.map(notice => {
+        const date = new Date(notice.created_at).toLocaleDateString('ja-JP', {
+          year: 'numeric', month: '2-digit', day: '2-digit'
+        });
+        const badge = notice.important ? '<span class="badge-important">重要</span>' : '';
+        
+        return `
+          <div class="notice-card ${notice.important ? 'important' : ''}">
+            <div class="notice-header">
+              <p class="notice-title">${badge}${escapeHtml(notice.title)}</p>
+              <span class="notice-date">${date}</span>
+            </div>
+            <div class="notice-content">${escapeHtml(notice.content)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // --- 2. カレンダーの初期化・表示（レスポンシブ対応） ---
+    async function initCalendar() {
+      const calendarEl = document.getElementById('calendar');
+      
+      const { data: events, error } = await supabaseClient.from('events').select('*');
+      if (error) {
+        console.error('Events Fetch Error:', error);
+      }
+
+      const isMobile = window.innerWidth < 768;
+
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        // スマホはリスト表示(listMonth)、PC・タブレットは月表示(dayGridMonth)
+        initialView: isMobile ? 'listMonth' : 'dayGridMonth',
+        locale: 'ja',
+        height: 'auto',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: isMobile ? 'dayGridMonth,listMonth' : 'dayGridMonth,timeGridWeek,listMonth'
+        },
+        buttonText: {
+          today: '今日',
+          month: '月',
+          week: '週',
+          list: '一覧'
+        },
+        events: events || [],
+        // 画面リサイズ時に動的に表示を最適化
+        windowResize: function() {
+          if (window.innerWidth < 768) {
+            calendar.changeView('listMonth');
+          } else {
+            calendar.changeView('dayGridMonth');
+          }
+        }
+      });
+      
+      calendar.render();
+    }
+
+    // XSS対策用エスケープ関数
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      })[m]);
+    }
+  </script>
+</body>
+</html>
