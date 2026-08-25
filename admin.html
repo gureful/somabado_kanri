@@ -9,51 +9,63 @@
     /* 全体レイアウトの自動調整 */
     * { box-sizing: border-box; }
     body { 
-      font-family: sans-serif; 
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
       width: 100%;
       max-width: 800px; 
       margin: 0 auto; 
       padding: 15px; 
-      color: #333;
+      background-color: #f4f4f5; /* グレー基調の背景 */
+      color: #18181b; /* ダークグレーのテキスト */
+      line-height: 1.5;
     }
 
     .hidden { display: none !important; }
 
     /* セクション枠の共通スタイル */
     .section-box { 
-      background: #fafafa; 
-      border: 1px solid #ddd; 
+      background: #ffffff; 
+      border: 1px solid #e4e4e7; 
       padding: 20px; 
       border-radius: 8px; 
       margin-bottom: 25px; 
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
     }
     .section-title { 
       margin-top: 0; 
-      border-bottom: 2px solid #007bff; 
+      border-bottom: 3px solid #800020; /* 暗めの赤 */
       padding-bottom: 8px; 
       font-size: 1.25em;
+      color: #09090b;
     }
 
     /* フォーム入力要素の100%幅化 */
     .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 6px; font-weight: bold; }
+    label { display: block; margin-bottom: 6px; font-weight: bold; color: #27272a; }
     input[type="text"], 
     input[type="date"], 
     input[type="password"], 
     textarea { 
       width: 100%; 
       padding: 10px; 
-      border: 1px solid #ccc;
+      border: 1px solid #d4d4d8;
       border-radius: 4px;
       font-size: 1rem;
+      background-color: #ffffff;
+      color: #18181b;
+    }
+    input[type="text"]:focus, 
+    input[type="date"]:focus, 
+    input[type="password"]:focus, 
+    textarea:focus {
+      outline: none;
+      border-color: #800020;
     }
     textarea { resize: vertical; }
 
     /* ボタン共通スタイル */
     button { 
       padding: 10px 18px; 
-      background: #007bff; 
+      background: #27272a; /* 黒/ダークグレー */
       color: white; 
       border: none; 
       cursor: pointer; 
@@ -61,7 +73,7 @@
       font-size: 1rem;
       transition: background 0.2s;
     }
-    button:hover { background: #0056b3; }
+    button:hover { background: #3f3f46; }
 
     /* ヘッダーエリア（タイトルとログアウトボタン） */
     .admin-header {
@@ -72,15 +84,23 @@
       flex-wrap: wrap;
       gap: 10px;
     }
-    .admin-header h2 { margin: 0; font-size: 1.5em; }
-    .logout-btn { background: #6c757d; }
-    .logout-btn:hover { background: #5a6268; }
+    .admin-header h2 { margin: 0; font-size: 1.5em; color: #09090b; }
+    .logout-btn { background: #52525b; }
+    .logout-btn:hover { background: #3f3f46; }
+
+    /* 投稿ボタン（暗めの赤） */
+    .submit-btn-red {
+      background: #800020 !important;
+    }
+    .submit-btn-red:hover {
+      background: #5c0017 !important;
+    }
 
     /* リスト要素の調整 */
     ul { list-style: none; padding: 0; margin: 0; }
     li { 
-      background: #ffffff; 
-      border: 1px solid #eee;
+      background: #fafafa; 
+      border: 1px solid #e4e4e7;
       margin-bottom: 8px; 
       padding: 12px; 
       display: flex; 
@@ -91,12 +111,12 @@
       word-break: break-all; /* 長い文字の溢れ防止 */
     }
     .delete-btn { 
-      background: #dc3545; 
+      background: #800020; /* 削除ボタンも暗めの赤に統一 */
       padding: 6px 12px; 
       font-size: 0.9rem;
       flex-shrink: 0; /* ボタンが潰れるのを防ぐ */
     }
-    .delete-btn:hover { background: #bd2130; }
+    .delete-btn:hover { background: #5c0017; }
 
     /* スマホ（画面幅 600px 以下）向けレイアウト微調整 */
     @media (max-width: 600px) {
@@ -112,7 +132,7 @@
 
   <!-- 1. ログイン画面（合言葉方式） -->
   <div id="login-section" class="section-box">
-    <h2>管理者ログイン</h2>
+    <h2 style="margin-top: 0; color: #09090b;">管理者ログイン</h2>
     <div class="form-group">
       <label for="password-input">合言葉（パスワード）</label>
       <input type="password" id="password-input" placeholder="パスワードを入力">
@@ -129,8 +149,8 @@
 
     <!-- カレンダー管理エリア -->
     <div class="section-box">
-      <h3 class="section-title">📅 予定の管理（カレンダー）</h3>
-      <h4>新規予定の追加</h4>
+      <h3 class="section-title">予定の管理（カレンダー）</h3>
+      <h4 style="color: #27272a;">新規予定の追加</h4>
       <div class="form-group">
         <label for="event-title">タイトル</label>
         <input type="text" id="event-title" placeholder="例: 会議">
@@ -145,14 +165,14 @@
       </div>
       <button onclick="addEvent()">予定を追加</button>
 
-      <h4 style="margin-top: 25px;">登録済みの予定一覧</h4>
+      <h4 style="margin-top: 25px; color: #27272a;">登録済みの予定一覧</h4>
       <ul id="event-list"></ul>
     </div>
 
     <!-- 連絡板管理エリア -->
     <div class="section-box">
-      <h3 class="section-title">📢 連絡板の管理</h3>
-      <h4>新規お知らせ投稿</h4>
+      <h3 class="section-title">連絡板の管理</h3>
+      <h4 style="color: #27272a;">新規お知らせ投稿</h4>
       <div class="form-group">
         <label for="notice-title">タイトル</label>
         <input type="text" id="notice-title" placeholder="例: 夏休みの連絡">
@@ -166,9 +186,9 @@
           <input type="checkbox" id="notice-important"> 重要なお知らせとしてピン留めする
         </label>
       </div>
-      <button onclick="addNotice()" style="background: #28a745;">お知らせを投稿</button>
+      <button class="submit-btn-red" onclick="addNotice()">お知らせを投稿</button>
 
-      <h4 style="margin-top: 25px;">投稿済みのお知らせ一覧</h4>
+      <h4 style="margin-top: 25px; color: #27272a;">投稿済みのお知らせ一覧</h4>
       <ul id="notice-list"></ul>
     </div>
 
@@ -282,8 +302,8 @@
         notices.forEach(notice => {
           const li = document.createElement('li');
           const date = new Date(notice.created_at).toLocaleDateString('ja-JP');
-          const tag = notice.important ? '<span style="color:red; font-weight:bold;">[重要] </span>' : '';
-          li.innerHTML = `<div><strong>${tag}${escapeHtml(notice.title)}</strong> <small>(${date})</small></div><button class="delete-btn" onclick="deleteNotice(${notice.id})">削除</button>`;
+          const tag = notice.important ? '<span style="color:#800020; font-weight:bold;">[重要] </span>' : '';
+          li.innerHTML = `<div><strong>${tag}${escapeHtml(notice.title)}</strong> <small style="color:#71717a;">(${date})</small></div><button class="delete-btn" onclick="deleteNotice(${notice.id})">削除</button>`;
           listEl.appendChild(li);
         });
       }
