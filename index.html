@@ -179,6 +179,7 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let calendar; // グローバルで保持
+    let currentWidth = window.innerWidth; // リサイズ判定用
 
     document.addEventListener('DOMContentLoaded', function() {
       loadNotices();
@@ -223,7 +224,7 @@
       }).join('');
     }
 
-    // --- 2. カレンダーの初期化・表示（レスポンシブ対応） ---
+    // --- 2. カレンダーの初期化・表示 ---
     async function initCalendar() {
       const calendarEl = document.getElementById('calendar');
       
@@ -251,8 +252,11 @@
           list: '一覧'
         },
         events: events || [],
-        // 画面リサイズ時に動的に表示を最適化
+        // 画面の「横幅」が実際に変わった時のみビューを切り替える（スクロールによる不具合を防止）
         windowResize: function() {
+          if (window.innerWidth === currentWidth) return; // 縦スクロールによる伸縮は無視
+          currentWidth = window.innerWidth;
+
           if (window.innerWidth < 768) {
             calendar.changeView('listMonth');
           } else {
