@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理者ページ</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* 全体レイアウトの自動調整 */
+    * { box-sizing: border-box; }
+    body { 
+      font-family: sans-serif; 
+      width: 100%;
+      max-width: 800px; 
+      margin: 0 auto; 
+      padding: 15px; 
+      color: #333;
+    }
+
+    .hidden { display: none !important; }
+
+    /* セクション枠の共通スタイル */
+    .section-box { 
+      background: #fafafa; 
+      border: 1px solid #ddd; 
+      padding: 20px; 
+      border-radius: 8px; 
+      margin-bottom: 25px; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .section-title { 
+      margin-top: 0; 
+      border-bottom: 2px solid #007bff; 
+      padding-bottom: 8px; 
+      font-size: 1.25em;
+    }
+
+    /* フォーム入力要素の100%幅化 */
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 6px; font-weight: bold; }
+    input[type="text"], 
+    input[type="date"], 
+    input[type="password"], 
+    textarea { 
+      width: 100%; 
+      padding: 10px; 
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    textarea { resize: vertical; }
+
+    /* ボタン共通スタイル */
+    button { 
+      padding: 10px 18px; 
+      background: #007bff; 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+      border-radius: 4px; 
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    button:hover { background: #0056b3; }
+
+    /* ヘッダーエリア（タイトルとログアウトボタン） */
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .admin-header h2 { margin: 0; font-size: 1.5em; }
+    .logout-btn { background: #6c757d; }
+    .logout-btn:hover { background: #5a6268; }
+
+    /* リスト要素の調整 */
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { 
+      background: #ffffff; 
+      border: 1px solid #eee;
+      margin-bottom: 8px; 
+      padding: 12px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      border-radius: 6px; 
+      gap: 10px;
+      word-break: break-all; /* 長い文字の溢れ防止 */
+    }
+    .delete-btn { 
+      background: #dc3545; 
+      padding: 6px 12px; 
+      font-size: 0.9rem;
+      flex-shrink: 0; /* ボタンが潰れるのを防ぐ */
+    }
+    .delete-btn:hover { background: #bd2130; }
+
+    /* スマホ（画面幅 600px 以下）向けレイアウト微調整 */
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .section-box { padding: 15px; }
+      button { width: 100%; padding: 12px; } /* スマホではボタンを押しやすく幅いっぱいに */
+      .delete-btn { width: auto; } /* 削除ボタンは幅固定 */
+      li { flex-direction: row; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. ログイン画面（合言葉方式） -->
+  <div id="login-section" class="section-box">
+    <h2>管理者ログイン</h2>
+    <div class="form-group">
+      <label for="password-input">合言葉（パスワード）</label>
+      <input type="password" id="password-input" placeholder="パスワードを入力">
+    </div>
+    <button onclick="login()">ログイン</button>
+  </div>
+
+  <!-- 2. 管理者メイン画面 -->
+  <div id="admin-section" class="hidden">
+    <div class="admin-header">
+      <h2>システム管理画面</h2>
+      <button class="logout-btn" onclick="logout()">ログアウト</button>
+    </div>
+
+    <!-- カレンダー管理エリア -->
+    <div class="section-box">
+      <h3 class="section-title">📅 予定の管理（カレンダー）</h3>
+      <h4>新規予定の追加</h4>
+      <div class="form-group">
+        <label for="event-title">タイトル</label>
+        <input type="text" id="event-title" placeholder="例: 会議">
+      </div>
+      <div class="form-group">
+        <label for="event-start">開始日</label>
+        <input type="date" id="event-start">
+      </div>
+      <div class="form-group">
+        <label for="event-end">終了日（任意）</label>
+        <input type="date" id="event-end">
+      </div>
+      <button onclick="addEvent()">予定を追加</button>
+
+      <h4 style="margin-top: 25px;">登録済みの予定一覧</h4>
+      <ul id="event-list"></ul>
+    </div>
+
+    <!-- 連絡板管理エリア -->
+    <div class="section-box">
+      <h3 class="section-title">📢 連絡板の管理</h3>
+      <h4>新規お知らせ投稿</h4>
+      <div class="form-group">
+        <label for="notice-title">タイトル</label>
+        <input type="text" id="notice-title" placeholder="例: 夏休みの連絡">
+      </div>
+      <div class="form-group">
+        <label for="notice-content">本文</label>
+        <textarea id="notice-content" rows="4" placeholder="お知らせの詳細を入力してください"></textarea>
+      </div>
+      <div class="form-group">
+        <label style="font-weight: normal; cursor: pointer;">
+          <input type="checkbox" id="notice-important"> 重要なお知らせとしてピン留めする
+        </label>
+      </div>
+      <button onclick="addNotice()" style="background: #28a745;">お知らせを投稿</button>
+
+      <h4 style="margin-top: 25px;">投稿済みのお知らせ一覧</h4>
+      <ul id="notice-list"></ul>
+    </div>
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://hgncgmwyimxhtxsvujje.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnbmNnbXd5aW14aHR4c3Z1amplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MzU5MDAsImV4cCI6MjEwMzExMTkwMH0.woPE34ngX-8EF_ffTeEeHxzoBT-hJRsJCJ4fZOmPIHg';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ページ読み込み時にセッション確認
+    window.addEventListener('DOMContentLoaded', async () => {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        showAdminSection();
+      }
+    });
+
+    function showAdminSection() {
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('admin-section').classList.remove('hidden');
+      loadEvents();
+      loadNotices();
+    }
+
+    // --- 認証機能 ---
+    async function login() {
+      const password = document.getElementById('password-input').value;
+      if (!password) { alert('パスワードを入力してください'); return; }
+      
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email: 'admin-calendar-2026@gmail.com',
+        password: password
+      });
+
+      if (error) {
+        console.error('Login Error:', error);
+        alert('ログイン失敗: ' + error.message);
+      } else {
+        showAdminSection();
+      }
+    }
+
+    async function logout() {
+      await supabaseClient.auth.signOut();
+      document.getElementById('admin-section').classList.add('hidden');
+      document.getElementById('login-section').classList.remove('hidden');
+      document.getElementById('password-input').value = '';
+    }
+
+    // --- カレンダー（events）操作 ---
+    async function loadEvents() {
+      const { data: events, error } = await supabaseClient.from('events').select('*').order('start', { ascending: true });
+      if (error) {
+        console.error('Events Load Error:', error);
+        return;
+      }
+      const listEl = document.getElementById('event-list');
+      listEl.innerHTML = '';
+      if (events) {
+        events.forEach(event => {
+          const li = document.createElement('li');
+          const dateStr = event.end ? `${event.start} 〜 ${event.end}` : event.start;
+          li.innerHTML = `<span><strong>${escapeHtml(event.title)}</strong> (${dateStr})</span><button class="delete-btn" onclick="deleteEvent('${event.id}')">削除</button>`;
+          listEl.appendChild(li);
+        });
+      }
+    }
+
+    async function addEvent() {
+      const title = document.getElementById('event-title').value;
+      const start = document.getElementById('event-start').value;
+      const end = document.getElementById('event-end').value;
+      if (!title || !start) { alert('タイトルと開始日は必須です'); return; }
+      
+      const newEvent = { title, start };
+      if (end) newEvent.end = end;
+
+      const { error } = await supabaseClient.from('events').insert([newEvent]);
+      if (error) {
+        alert('追加に失敗しました: ' + error.message);
+      } else {
+        alert('予定を追加しました');
+        document.getElementById('event-title').value = '';
+        document.getElementById('event-start').value = '';
+        document.getElementById('event-end').value = '';
+        loadEvents();
+      }
+    }
+
+    async function deleteEvent(id) {
+      if (!confirm('本当にこの予定を削除しますか？')) return;
+      const { error } = await supabaseClient.from('events').delete().eq('id', id);
+      if (error) {
+        alert('削除に失敗しました: ' + error.message);
+      } else {
+        loadEvents();
+      }
+    }
+
+    // --- 連絡板（notices）操作 ---
+    async function loadNotices() {
+      const { data: notices, error } = await supabaseClient.from('notices').select('*').order('created_at', { ascending: false });
+      if (error) {
+        console.error('Notices Load Error:', error);
+        return;
+      }
+      const listEl = document.getElementById('notice-list');
+      listEl.innerHTML = '';
+      if (notices) {
+        notices.forEach(notice => {
+          const li = document.createElement('li');
+          const date = new Date(notice.created_at).toLocaleDateString('ja-JP');
+          const tag = notice.important ? '<span style="color:red; font-weight:bold;">[重要] </span>' : '';
+          li.innerHTML = `<div><strong>${tag}${escapeHtml(notice.title)}</strong> <small>(${date})</small></div><button class="delete-btn" onclick="deleteNotice(${notice.id})">削除</button>`;
+          listEl.appendChild(li);
+        });
+      }
+    }
+
+    async function addNotice() {
+      const title = document.getElementById('notice-title').value;
+      const content = document.getElementById('notice-content').value;
+      const important = document.getElementById('notice-important').checked;
+
+      if (!title || !content) { alert('タイトルと本文を入力してください'); return; }
+
+      const { error } = await supabaseClient.from('notices').insert([{ title, content, important }]);
+      if (error) {
+        alert('投稿に失敗しました: ' + error.message);
+      } else {
+        alert('お知らせを投稿しました');
+        document.getElementById('notice-title').value = '';
+        document.getElementById('notice-content').value = '';
+        document.getElementById('notice-important').checked = false;
+        loadNotices();
+      }
+    }
+
+    async function deleteNotice(id) {
+      if (!confirm('本当にこのお知らせを削除しますか？')) return;
+      const { error } = await supabaseClient.from('notices').delete().eq('id', id);
+      if (error) {
+        alert('削除に失敗しました: ' + error.message);
+      } else {
+        loadNotices();
+      }
+    }
+
+    // XSS対策用エスケープ関数
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      })[m]);
+    }
+  </script>
+</body>
+</html>
