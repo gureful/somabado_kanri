@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理者ページ</title>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- CSSファイルの読み込み -->
+  <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+
+  <!-- 1. ログイン画面（合言葉方式） -->
+  <div id="login-section" class="section-box">
+    <h2 style="margin-top: 0; color: #09090b;">管理者ログイン</h2>
+    <div class="form-group">
+      <label for="password-input">合言葉（パスワード）</label>
+      <input type="password" id="password-input" placeholder="パスワードを入力">
+    </div>
+    <button onclick="login()">ログイン</button>
+  </div>
+
+  <!-- 2. 管理者メイン画面 -->
+  <div id="admin-section" class="hidden">
+    <div class="admin-header">
+      <h2>システム管理画面</h2>
+      <button class="logout-btn" onclick="logout()">ログアウト</button>
+    </div>
+
+    <!-- カレンダー管理エリア -->
+    <div class="section-box">
+      <h3 class="section-title">予定の管理（カレンダー）</h3>
+      <h4 style="color: #27272a;">新規予定の追加</h4>
+      <div class="form-group">
+        <label for="event-title">タイトル</label>
+        <input type="text" id="event-title" placeholder="例: 会議">
+      </div>
+      <div class="form-group">
+        <label for="event-start">開始日</label>
+        <input type="date" id="event-start">
+      </div>
+      <div class="form-group">
+        <label for="event-end">終了日（任意）</label>
+        <input type="date" id="event-end">
+      </div>
+      <button onclick="addEvent()">予定を追加</button>
+
+      <h4 style="margin-top: 25px; color: #27272a;">登録済みの予定一覧</h4>
+      <ul id="event-list"></ul>
+    </div>
+
+    <!-- 連絡板管理エリア -->
+    <div class="section-box">
+      <h3 class="section-title">連絡板の管理</h3>
+      <h4 style="color: #27272a;">新規お知らせ投稿</h4>
+      <div class="form-group">
+        <label for="notice-title">タイトル</label>
+        <input type="text" id="notice-title" placeholder="例: 夏休みの連絡">
+      </div>
+      <div class="form-group">
+        <label for="notice-content">本文</label>
+        <textarea id="notice-content" rows="4" placeholder="お知らせの詳細を入力してください"></textarea>
+      </div>
+      <div class="form-group">
+        <label style="font-weight: normal; cursor: pointer;">
+          <input type="checkbox" id="notice-important"> 重要なお知らせとしてピン留めする
+        </label>
+      </div>
+      <button class="submit-btn-red" onclick="addNotice()">お知らせを投稿</button>
+
+      <h4 style="margin-top: 25px; color: #27272a;">投稿済みのお知らせ一覧</h4>
+      <ul id="notice-list"></ul>
+    </div>
+
+  </div>
+
+  <!-- JavaScriptファイルの読み込み -->
+  <script src="admin-script.js"></script>
+</body>
+</html>

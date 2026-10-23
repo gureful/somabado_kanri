@@ -1,0 +1,137 @@
+/* 全体レイアウトの自動調整 */
+* { box-sizing: border-box; }
+
+body { 
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+  width: 100%;
+  max-width: 800px; 
+  margin: 0 auto; 
+  padding: 15px; 
+  background-color: #f4f4f5; /* グレー基調の背景 */
+  color: #18181b; /* ダークグレーのテキスト */
+  line-height: 1.5;
+}
+
+.hidden { display: none !important; }
+
+/* セクション枠の共通スタイル */
+.section-box { 
+  background: #ffffff; 
+  border: 1px solid #e4e4e7; 
+  padding: 20px; 
+  border-radius: 8px; 
+  margin-bottom: 25px; 
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.section-title { 
+  margin-top: 0; 
+  border-bottom: 3px solid #800020; /* 暗めの赤 */
+  padding-bottom: 8px; 
+  font-size: 1.25em;
+  color: #09090b;
+}
+
+/* フォーム入力要素の100%幅化 */
+.form-group { margin-bottom: 15px; }
+
+label { 
+  display: block; 
+  margin-bottom: 6px; 
+  font-weight: bold; 
+  color: #27272a; 
+}
+
+input[type="text"], 
+input[type="date"], 
+input[type="password"], 
+textarea { 
+  width: 100%; 
+  padding: 10px; 
+  border: 1px solid #d4d4d8;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: #ffffff;
+  color: #18181b;
+}
+
+input[type="text"]:focus, 
+input[type="date"]:focus, 
+input[type="password"]:focus, 
+textarea:focus {
+  outline: none;
+  border-color: #800020;
+}
+
+textarea { resize: vertical; }
+
+/* ボタン共通スタイル */
+button { 
+  padding: 10px 18px; 
+  background: #27272a; /* 黒/ダークグレー */
+  color: white; 
+  border: none; 
+  cursor: pointer; 
+  border-radius: 4px; 
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+
+button:hover { background: #3f3f46; }
+
+/* ヘッダーエリア（タイトルとログアウトボタン） */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-header h2 { margin: 0; font-size: 1.5em; color: #09090b; }
+.logout-btn { background: #52525b; }
+.logout-btn:hover { background: #3f3f46; }
+
+/* 投稿ボタン（暗めの赤） */
+.submit-btn-red {
+  background: #800020 !important;
+}
+
+.submit-btn-red:hover {
+  background: #5c0017 !important;
+}
+
+/* リスト要素の調整 */
+ul { list-style: none; padding: 0; margin: 0; }
+
+li { 
+  background: #fafafa; 
+  border: 1px solid #e4e4e7;
+  margin-bottom: 8px; 
+  padding: 12px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  border-radius: 6px; 
+  gap: 10px;
+  word-break: break-all; /* 長い文字の溢れ防止 */
+}
+
+.delete-btn { 
+  background: #800020; /* 削除ボタンも暗めの赤に統一 */
+  padding: 6px 12px; 
+  font-size: 0.9rem;
+  flex-shrink: 0; /* ボタンが潰れるのを防ぐ */
+}
+
+.delete-btn:hover { background: #5c0017; }
+
+/* スマホ（画面幅 600px 以下）向けレイアウト微調整 */
+@media (max-width: 600px) {
+  body { padding: 10px; }
+  .section-box { padding: 15px; }
+  button { width: 100%; padding: 12px; } /* スマホではボタンを押しやすく幅いっぱいに */
+  .delete-btn { width: auto; } /* 削除ボタンは幅固定 */
+  li { flex-direction: row; }
+}
